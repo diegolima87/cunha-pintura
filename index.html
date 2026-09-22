@@ -994,9 +994,23 @@ class Component extends DCLogic {
         window.open("https://wa.me/5519982359382?text=" + encodeURIComponent(resumo), "_blank");
       },
       enviarEmail: () => {
-        const sub = "Orçamento — " + (f.nome || "novo cliente") + (f.cidade ? " (" + f.cidade + ")" : "");
-        window.location.href = "mailto:cunhapinturasp@gmail.com,deklima@gmail.com?subject=" +
-          encodeURIComponent(sub) + "&body=" + encodeURIComponent(resumo.replace(/\*/g, ""));
+        this.setState({ erro: "" });
+        fetch("/send-quote.php", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ resumo, nome: f.nome, cidade: f.cidade })
+        })
+          .then(r => r.json())
+          .then(data => {
+            if (data && data.ok) {
+              alert("Orçamento enviado por e-mail! Entraremos em contato em breve.");
+            } else {
+              this.setState({ erro: "Não foi possível enviar o e-mail agora. Tente pelo WhatsApp." });
+            }
+          })
+          .catch(() => {
+            this.setState({ erro: "Não foi possível enviar o e-mail agora. Tente pelo WhatsApp." });
+          });
       }
     };
   }
