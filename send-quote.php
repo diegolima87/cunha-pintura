@@ -7,6 +7,8 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
   exit;
 }
 
+require __DIR__ . '/config.php';
+
 $input = json_decode(file_get_contents('php://input'), true);
 $resumo = isset($input['resumo']) ? trim($input['resumo']) : '';
 $nome = isset($input['nome']) ? trim($input['nome']) : '';
@@ -18,16 +20,33 @@ if ($resumo === '') {
   exit;
 }
 
-$to = 'orcamento@cunhapintura.com.br';
-$cc = 'cunhapinturasp@gmail.com,deklima@gmail.com';
 $subjectText = 'Orçamento — ' . ($nome !== '' ? $nome : 'novo cliente') . ($cidade !== '' ? ' (' . $cidade . ')' : '');
-$subject = '=?UTF-8?B?' . base64_encode($subjectText) . '?=';
 $message = str_replace('*', '', $resumo);
-$headers = "From: Cunha Pintura <orcamento@cunhapintura.com.br>\r\n" .
-           "Cc: " . $cc . "\r\n" .
-           "Reply-To: cunhapinturasp@gmail.com\r\n" .
-           "Content-Type: text/plain; charset=UTF-8";
 
-$sent = @mail($to, $subject, $message, $headers);
+$payload = json_encode([
+  'from' => 'Cunha Pintura <orcamento@cunhapintura.com.br>',
+  'to' => ['orcamento@cunhapintura.com.br'],
+  'cc' => ['cunhapinturasp@gmail.com', 'deklima@gmail.com'],
+  'reply_to' => 'cunhapinturasp@gmail.com',
+  'subject' => $subjectText,
+  'text' => $message,
+]);
+
+$ch = curl_init('https://api.resend.com/emails');
+curl_setopt_array($ch, [
+  CURLOPT_RETURNTRANSFER => true,
+  CURLOPT_POST => true,
+  CURLOPT_POSTFIELDS => $payload,
+  CURLOPT_HTTPHEADER => [
+    'Authorization: Bearer ' . RESEND_API_KEY,
+    'Content-Type: application/json',
+  ],
+  CURLOPT_TIMEOUT => 15,
+]);
+$response = curl_exec($ch);
+$status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+curl_close($ch);
+
+$sent = $status >= 200 && $status < 300;
 
 echo json_encode(['ok' => $sent]);
