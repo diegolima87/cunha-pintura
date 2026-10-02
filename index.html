@@ -732,7 +732,7 @@ window.__resources = {
                   <input value="{{ f.nome }}" sc-camel-on-change="{{ onNome }}" placeholder="Seu nome" style="border:1px solid #D8E0EC; border-radius:10px; padding:13px 14px; font-size:15px; color:#16202E; outline:none" style-focus="border-color:#0052B6; box-shadow:0 0 0 3px rgba(0,82,182,.14)">
                 </label>
                 <label style="display:flex; flex-direction:column; gap:7px; font-size:13.5px; font-weight:600; color:#062E63">WhatsApp / telefone *
-                  <input value="{{ f.telefone }}" sc-camel-on-change="{{ onTelefone }}" placeholder="(19) 90000-0000" style="border:1px solid #D8E0EC; border-radius:10px; padding:13px 14px; font-size:15px; color:#16202E; outline:none" style-focus="border-color:#0052B6; box-shadow:0 0 0 3px rgba(0,82,182,.14)">
+                  <input value="{{ f.telefone }}" sc-camel-on-change="{{ onTelefone }}" placeholder="(19) 90000-0000" inputmode="tel" maxlength="16" style="border:1px solid #D8E0EC; border-radius:10px; padding:13px 14px; font-size:15px; color:#16202E; outline:none" style-focus="border-color:#0052B6; box-shadow:0 0 0 3px rgba(0,82,182,.14)">
                 </label>
                 <label style="display:flex; flex-direction:column; gap:7px; font-size:13.5px; font-weight:600; color:#062E63">E-mail
                   <input value="{{ f.email }}" sc-camel-on-change="{{ onEmail }}" placeholder="voce@email.com" style="border:1px solid #D8E0EC; border-radius:10px; padding:13px 14px; font-size:15px; color:#16202E; outline:none" style-focus="border-color:#0052B6; box-shadow:0 0 0 3px rgba(0,82,182,.14)">
@@ -898,6 +898,15 @@ class Component extends DCLogic {
   set(key, v) { this.setState(s => ({ f: Object.assign({}, s.f, { [key]: v }), erro: "" })); }
   handler(key) { return e => this.set(key, e.target.value); }
 
+  maskPhone(v) {
+    const d = v.replace(/\D/g, "").slice(0, 11);
+    if (d.length === 0) return "";
+    if (d.length <= 2) return "(" + d;
+    if (d.length <= 6) return "(" + d.slice(0, 2) + ") " + d.slice(2);
+    if (d.length <= 10) return "(" + d.slice(0, 2) + ") " + d.slice(2, 6) + "-" + d.slice(6);
+    return "(" + d.slice(0, 2) + ") " + d.slice(2, 7) + "-" + d.slice(7);
+  }
+
   toggleList(listKey, label) {
     this.setState(s => {
       const cur = s[listKey];
@@ -985,7 +994,7 @@ class Component extends DCLogic {
       closeModal: () => this.setState({ open: false }),
       stop: e => e.stopPropagation(),
       next: this.next, back: this.back,
-      onNome: this.handler("nome"), onTelefone: this.handler("telefone"), onEmail: this.handler("email"),
+      onNome: this.handler("nome"), onTelefone: e => this.set("telefone", this.maskPhone(e.target.value)), onEmail: this.handler("email"),
       onCidade: this.handler("cidade"), onTipo: this.handler("tipo"), onArea: this.handler("area"),
       onPavimentos: this.handler("pavimentos"), onLocal: this.handler("local"),
       onAcesso: this.handler("acesso"), onCores: this.handler("cores"),

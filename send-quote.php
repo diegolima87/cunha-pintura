@@ -18,11 +18,13 @@ if ($resumo === '') {
   exit;
 }
 
-$to = 'cunhapinturasp@gmail.com,deklima@gmail.com';
+$to = 'orcamento@cunhapintura.com.br';
+$cc = 'cunhapinturasp@gmail.com,deklima@gmail.com';
 $subjectText = 'Orçamento — ' . ($nome !== '' ? $nome : 'novo cliente') . ($cidade !== '' ? ' (' . $cidade . ')' : '');
 $subject = '=?UTF-8?B?' . base64_encode($subjectText) . '?=';
 $message = str_replace('*', '', $resumo);
-$headers = "From: Cunha Pintura <site@cunhapinturas.com.br>\r\n" .
+$headers = "From: Cunha Pintura <orcamento@cunhapintura.com.br>\r\n" .
+           "Cc: " . $cc . "\r\n" .
            "Reply-To: cunhapinturasp@gmail.com\r\n" .
            "Content-Type: text/plain; charset=UTF-8";
 
