@@ -11,8 +11,6 @@ require __DIR__ . '/config.php';
 
 $input = json_decode(file_get_contents('php://input'), true);
 $resumo = isset($input['resumo']) ? trim($input['resumo']) : '';
-$nome = isset($input['nome']) ? trim($input['nome']) : '';
-$cidade = isset($input['cidade']) ? trim($input['cidade']) : '';
 
 if ($resumo === '') {
   http_response_code(400);
@@ -20,7 +18,7 @@ if ($resumo === '') {
   exit;
 }
 
-$subjectText = 'Orçamento — ' . ($nome !== '' ? $nome : 'novo cliente') . ($cidade !== '' ? ' (' . $cidade . ')' : '');
+$subjectText = 'Orçamento Site Cunha Pintura';
 $message = str_replace('*', '', $resumo);
 
 $payload = json_encode([
