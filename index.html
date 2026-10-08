@@ -1263,31 +1263,40 @@ class Component extends DCLogic {
 
 <script>
 (function () {
+  // Delegated on document (not on the .ba-slider elements themselves): the
+  // component framework on this page replaces its whole subtree once on
+  // boot, which would otherwise discard listeners bound directly to nodes
+  // inside it before that swap happens.
   function clamp(v, min, max) { return Math.max(min, Math.min(max, v)); }
-  document.querySelectorAll('#comparador-antes-depois .ba-slider').forEach(function (slider) {
-    var dragging = false;
-    function setPosFromClientX(clientX) {
-      var rect = slider.getBoundingClientRect();
-      var pct = clamp(((clientX - rect.left) / rect.width) * 100, 0, 100);
-      slider.style.setProperty('--pos', pct + '%');
-      slider.setAttribute('aria-valuenow', Math.round(pct));
-    }
-    slider.addEventListener('pointerdown', function (e) {
-      dragging = true;
-      slider.setPointerCapture(e.pointerId);
-      setPosFromClientX(e.clientX);
-    });
-    slider.addEventListener('pointermove', function (e) {
-      if (!dragging) return;
-      setPosFromClientX(e.clientX);
-    });
-    slider.addEventListener('pointerup', function () { dragging = false; });
-    slider.addEventListener('pointercancel', function () { dragging = false; });
-    slider.addEventListener('keydown', function (e) {
-      var current = parseFloat(slider.style.getPropertyValue('--pos')) || 50;
-      if (e.key === 'ArrowLeft') { slider.style.setProperty('--pos', clamp(current - 5, 0, 100) + '%'); e.preventDefault(); }
-      if (e.key === 'ArrowRight') { slider.style.setProperty('--pos', clamp(current + 5, 0, 100) + '%'); e.preventDefault(); }
-    });
+  var activeSlider = null;
+  function setPos(slider, clientX) {
+    var rect = slider.getBoundingClientRect();
+    var pct = clamp(((clientX - rect.left) / rect.width) * 100, 0, 100);
+    slider.style.setProperty('--pos', pct + '%');
+    slider.setAttribute('aria-valuenow', Math.round(pct));
+  }
+  document.addEventListener('pointerdown', function (e) {
+    var slider = e.target.closest && e.target.closest('#comparador-antes-depois .ba-slider');
+    if (!slider) return;
+    activeSlider = slider;
+    slider.setPointerCapture(e.pointerId);
+    setPos(slider, e.clientX);
+  });
+  document.addEventListener('pointermove', function (e) {
+    if (!activeSlider) return;
+    setPos(activeSlider, e.clientX);
+  });
+  document.addEventListener('pointerup', function () { activeSlider = null; });
+  document.addEventListener('pointercancel', function () { activeSlider = null; });
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+    var slider = document.activeElement && document.activeElement.closest && document.activeElement.closest('#comparador-antes-depois .ba-slider');
+    if (!slider) return;
+    var current = parseFloat(slider.style.getPropertyValue('--pos')) || 50;
+    var next = clamp(current + (e.key === 'ArrowLeft' ? -5 : 5), 0, 100);
+    slider.style.setProperty('--pos', next + '%');
+    slider.setAttribute('aria-valuenow', Math.round(next));
+    e.preventDefault();
   });
 })();
 </script>
